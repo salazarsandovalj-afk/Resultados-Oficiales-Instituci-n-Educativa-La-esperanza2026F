@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Institución Educativa La Esperanza — Resultados Saber 11°</title>
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS (xlsx.full.min.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --secondary: #0d9488;
+            --bg-body: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            
+            /* Nivel Colors */
+            --color-critico: #ef4444;
+            --color-bajo: #eab308;
+            --color-medio: #f97316;
+            --color-alto: #2563eb;
+            --color-sobresaliente: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            padding: 24px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1320px;
+            margin: 0 auto;
+        }
+
+        /* HEADER INSTITUCIONAL */
+        header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #2563eb 100%);
+            color: white;
+            padding: 36px 32px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(30, 58, 138, 0.25);
+            margin-bottom: 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .header-brand h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-brand h1 i {
+            color: #60a5fa;
+        }
+
+        .header-brand p {
+            font-size: 1.05rem;
+            color: #93c5fd;
+            font-weight: 500;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            z-index: 2;
+        }
+
+        .btn-export {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-export:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        }
+
+        /* BARRA COMPACTA DE TÍTULO Y FILTRO */
+        .title-filter-bar {
+            background: var(--card-bg);
+            padding: 16px 24px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        }
+
+        .title-filter-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .title-filter-left h2 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+        }
+
+        .filter-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .select-custom-compact {
+            padding: 6px 14px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background-color: #f1f5f9;
+            color: var(--primary);
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .select-custom-compact:hover {
+            background-color: #e2e8f0;
+        }
+
+        .select-custom-compact:focus {
+            border-color: var(--primary-light);
+            background-color: #fff;
+        }
+
+        /* TARJETAS KPI */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .kpi-card {
+            background: var(--card-bg);
+            padding: 22px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .kpi-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .kpi-data h3 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .kpi-data .value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1.1;
+        }
+
+        .kpi-data .subtext {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .badge-improvement {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 6px;
+            padding: 3px 8px;
+            background-color: #dcfce7;
+            color: #15803d;
+            font-size: 0.78rem;
+            font-weight: 800;
+            border-radius: 6px;
+            border: 1px solid #bbf7d0;
+        }
+
+        /* MATRIZ DAFO */
+        .dafo-section-title {
+            font-size: 1.45rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: -0.01em;
+        }
+
+        .dafo-section-title i {
+            -webkit-text-fill-color: #2563eb;
+        }
+
+        .dafo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .dafo-card {
+            border-radius: 16px;
+            padding: 22px;
+            color: #0f172a;
+            border-left: 6px solid;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+            background: white;
+            transition: transform 0.2s;
+        }
+
+        .dafo-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .dafo-card.fortalezas {
+            border-color: #10b981;
+            background: linear-gradient(180deg, #ecfdf5 0%, #ffffff 100%);
+        }
+
+        .dafo-card.debilidades {
+            border-color: #ef4444;
+            background: linear-gradient(180deg, #fef2f2 0%, #ffffff 100%);
+        }
+
+        .dafo-card.oportunidades {
+            border-color: #3b82f6;
+            background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);
+        }
+
+        .dafo-card.amenazas {
+            border-color: #f59e0b;
+            background: linear-gradient(180deg, #fffbeb 0%, #ffffff 100%);
+        }
+
+        .dafo-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .dafo-header i {
+            font-size: 1.3rem;
+        }
+
+        .fortalezas .dafo-header { color: #047857; }
+        .debilidades .dafo-header { color: #b91c1c; }
+        .oportunidades .dafo-header { color: #1d4ed8; }
+        .amenazas .dafo-header { color: #b45309; }
+
+        .dafo-header h4 {
+            font-size: 1.1rem;
+            font-weight: 800;
+        }
+
+        .dafo-list {
+            list-style: none;
+            font-size: 0.9rem;
+            color: #334155;
+        }
+
+        .dafo-list li {
+            margin-bottom: 10px;
+            position: relative;
+            padding-left: 18px;
+            line-height: 1.45;
+        }
+
+        .dafo-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        /* SECCIÓN DE GRÁFICOS */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 992px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-container {
+            position: relative;
+            flex: 1;
+            min-height: 280px;
+            width: 100%;
+        }
+
+        /* CONTENEDOR RESUMEN DE NIVELES */
+        .niveles-summary-box {
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .niveles-summary-title {
+            font-size: 0.82rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .niveles-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+            gap: 8px;
+        }
+
+        .nivel-summary-card {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 8px 10px;
+            text-align: center;
+        }
+
+        .nivel-summary-card .count {
+            font-size: 1.25rem;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+
+        .nivel-summary-card .label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-top: 2px;
+            color: var(--text-muted);
+        }
+
+        /* TABLA DE RANKING */
+        .table-card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+            margin-bottom: 32px;
+            overflow: hidden;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.92rem;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: #334155;
+            padding: 14px 16px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            color: #1e293b;
+        }
+
+        tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-weight: 800;
+            font-size: 0.85rem;
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .rank-1 { background: #fef08a; color: #854d0e; }
+        .rank-2 { background: #e2e8f0; color: #334155; }
+        .rank-3 { background: #ffedd5; color: #9a3412; }
+
+        .badge-nivel {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: white;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .badge-critico { background-color: var(--color-critico); }
+        .badge-bajo { background-color: var(--color-bajo); color: #000; }
+        .badge-medio { background-color: var(--color-medio); }
+        .badge-alto { background-color: var(--color-alto); }
+        .badge-sobresaliente { background-color: var(--color-sobresaliente); }
+
+        .student-name {
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .score-global {
+            font-weight: 800;
+            font-size: 1rem;
+            color: var(--primary);
+        }
+
+        .legend-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 16px;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 1. ENCABEZADO Y MARCA -->
+        <header>
+            <div class="header-brand">
+                <h1><i class="fa-solid fa-graduation-cap"></i> Institución Educativa La Esperanza</h1>
+                <p>Resultados Saber 11° — [Oficial Institución Educativa La Esperanza]</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn-export" onclick="exportToExcel()">
+                    <i class="fa-solid fa-file-excel"></i> Exportar Excel
+                </button>
+            </div>
+        </header>
+
+        <!-- BARRA COMPACTA: TÍTULO Y FILTRO DE GRADO -->
+        <div class="title-filter-bar">
+            <div class="title-filter-left">
+                <h2>
+                    <i class="fa-solid fa-chart-line" style="color: var(--primary-light);"></i> 
+                    Informe General de Desempeño
+                </h2>
+                <div class="filter-inline">
+                    <span style="font-size: 0.88rem; color: var(--text-muted); font-weight: 700;">— Grado:</span>
+                    <select id="selectGrado" class="select-custom-compact" onchange="filterData()">
+                        <option value="todos">Todos los Grados (11°)</option>
+                        <option value="11">Grado 11° (General)</option>
+                    </select>
+                </div>
+            </div>
+            <div style="font-size: 0.88rem; color: var(--text-muted); font-weight: 600;">
+                <i class="fa-solid fa-users"></i> Evaluados: <span id="totalStudentsCount" style="color: var(--text-main); font-weight: 800;">11</span>
+            </div>
+        </div>
+
+        <!-- 2. ANÁLISIS DE DATOS Y TARJETAS KPI -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background: #dbeafe; color: #1d4ed8;">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <div class="kpi-data">
+                    <h3>Promedio Global</h3>
+                    <div class="value" id="kpiPromedioGlobal">273</div>
+                    <div class="badge-improvement">
+                        <i class="fa-solid fa-arrow-trend-up"></i> +46 pts respecto al año anterior
+                    </div>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background: #f3e8ff; color: #7e22ce;">
+                    <i class="fa-solid fa-arrows-left-right-to-line"></i>
+                </div>
+                <div class="kpi-data">
+                    <h3>Desviación Estándar</h3>
+                    <div class="value" id="kpiDesviacion">52</div>
+                    <div class="subtext">Variación en puntajes</div>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background: #dcfce7; color: #15803d;">
+                    <i class="fa-solid fa-award"></i>
+                </div>
+                <div class="kpi-data">
+                    <h3>Área con Mejor Rendimiento</h3>
+                    <div class="value" id="kpiMejorArea" style="font-size: 1.3rem; color: #15803d;">Ciencias Naturales</div>
+                    <div class="subtext">Promedio: <strong id="kpiMejorAreaVal">60</strong> pts</div>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-icon" style="background: #ffe4e6; color: #be123c;">
+                    <i class="fa-solid fa-bullseye"></i>
+                </div>
+                <div class="kpi-data">
+                    <h3>Área a Reforzar</h3>
+                    <div class="value" id="kpiPeorArea" style="font-size: 1.3rem; color: #be123c;">Inglés</div>
+                    <div class="subtext">Promedio: <strong id="kpiPeorAreaVal">45</strong> pts</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. MATRIZ DE DIAGNÓSTICO DAFO -->
+        <h2 class="dafo-section-title">
+            <i class="fa-solid fa-layer-group"></i> Matriz de Diagnóstico DAFO
+        </h2>
+        <div class="dafo-grid">
+            <div class="dafo-card fortalezas">
+                <div class="dafo-header">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <h4>Fortalezas</h4>
+                </div>
+                <ul class="dafo-list">
+                    <li>Excelente rendimiento sobresaliente en Ciencias Naturales (60 pts) y Matemáticas (59 pts).</li>
+                    <li>Presencia de alto desempeño individual, destacando un puntaje superior de 395 pts.</li>
+                    <li>27% de los estudiantes alcanzaron el Nivel Alto (300–400 pts).</li>
+                </ul>
+            </div>
+
+            <div class="dafo-card debilidades">
+                <div class="dafo-header">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                    <h4>Debilidades</h4>
+                </div>
+                <ul class="dafo-list">
+                    <li>Bajo promedio general en el área de Inglés (45 pts) y Sociales y Ciudadanas (50 pts).</li>
+                    <li>El 36% de los estudiantes se ubican en Nivel Bajo (200–250 pts).</li>
+                    <li>Brecha significativa de 183 puntos entre el rendimiento máximo y el mínimo.</li>
+                </ul>
+            </div>
+
+            <div class="dafo-card oportunidades">
+                <div class="dafo-header">
+                    <i class="fa-solid fa-lightbulb"></i>
+                    <h4>Oportunidades</h4>
+                </div>
+                <ul class="dafo-list">
+                    <li>36% de la cohorte se halla en Nivel Medio (250–300 pts), con alto potencial para migrar a Nivel Alto.</li>
+                    <li>Implementación de talleres focalizados en Lectura Crítica y Competencias Ciudadanas.</li>
+                    <li>Aprovechamiento de los estudiantes con altos resultados como tutores pares.</li>
+                </ul>
+            </div>
+
+            <div class="dafo-card amenazas">
+                <div class="dafo-header">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <h4>Amenazas</h4>
+                </div>
+                <ul class="dafo-list">
+                    <li>Alta variabilidad (Desviación Estándar = 52) que afecta la consistencia del rendimiento global.</li>
+                    <li>Riesgo de estancamiento en la competencia bilingüe (Inglés) si no se ajusta la intensidad horaria.</li>
+                    <li>Afectación del índice sintético institucional por concentración en niveles bajos.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 5. VISUALIZACIÓN GRÁFICA (Chart.js) -->
+        <div class="charts-grid">
+            <!-- Gráfico de Barras Réplica Exacta de la Imagen -->
+            <div class="chart-card">
+                <h2 class="section-title" style="font-size: 1.15rem; font-weight: 800; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-chart-column" style="color: var(--primary);"></i> Promedio por Áreas de Evaluación
+                </h2>
+                <div class="chart-container">
+                    <canvas id="barChartAreas"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfico de Torta (Pie Chart) -->
+            <div class="chart-card">
+                <h2 class="section-title" style="font-size: 1.15rem; font-weight: 800; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-chart-pie" style="color: var(--primary);"></i> Distribución por Niveles de Desempeño
+                </h2>
+                <div class="chart-container">
+                    <canvas id="pieChartNiveles"></canvas>
+                </div>
+                
+                <div class="niveles-summary-box">
+                    <div class="niveles-summary-title">
+                        <i class="fa-solid fa-list-check"></i> Estudiantes por Nivel:
+                    </div>
+                    <div class="niveles-summary-grid">
+                        <div class="nivel-summary-card" style="border-top: 3px solid var(--color-critico);">
+                            <div class="count" id="countCritico" style="color: var(--color-critico);">0</div>
+                            <div class="label">Crítico</div>
+                        </div>
+                        <div class="nivel-summary-card" style="border-top: 3px solid var(--color-bajo);">
+                            <div class="count" id="countBajo" style="color: #b45309;">5</div>
+                            <div class="label">Bajo</div>
+                        </div>
+                        <div class="nivel-summary-card" style="border-top: 3px solid var(--color-medio);">
+                            <div class="count" id="countMedio" style="color: var(--color-medio);">3</div>
+                            <div class="label">Medio</div>
+                        </div>
+                        <div class="nivel-summary-card" style="border-top: 3px solid var(--color-alto);">
+                            <div class="count" id="countAlto" style="color: var(--color-alto);">2</div>
+                            <div class="label">Alto</div>
+                        </div>
+                        <div class="nivel-summary-card" style="border-top: 3px solid var(--color-sobresaliente);">
+                            <div class="count" id="countSobresaliente" style="color: var(--color-sobresaliente);">1</div>
+                            <div class="label">Sobresaliente</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. TABLA DE RANKING -->
+        <div class="table-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <h2 class="section-title" style="margin-bottom: 0;">
+                    <i class="fa-solid fa-trophy"></i> Tabla de Ranking Estudiantil
+                </h2>
+                <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
+                    Ordenado de Mayor a Menor por Puntaje Global
+                </span>
+            </div>
+
+            <div class="legend-grid">
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--color-critico);"></div>
+                    <span>Crítico (&lt; 200 pts)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--color-bajo);"></div>
+                    <span>Bajo (200 - 249 pts)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--color-medio);"></div>
+                    <span>Medio (250 - 299 pts)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--color-alto);"></div>
+                    <span>Alto (300 - 399 pts)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--color-sobresaliente);"></div>
+                    <span>Sobresaliente (&ge; 400 pts)</span>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table id="rankingTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px; text-align: center;">Pos.</th>
+                            <th>Estudiante</th>
+                            <th style="text-align: center;">L. Crítica</th>
+                            <th style="text-align: center;">Matemáticas</th>
+                            <th style="text-align: center;">Sociales</th>
+                            <th style="text-align: center;">Naturales</th>
+                            <th style="text-align: center;">Inglés</th>
+                            <th style="text-align: center;">Puntaje Global</th>
+                            <th style="text-align: center;">Nivel de Desempeño</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <footer>
+            Institución Educativa La Esperanza — Sistema de Gestión de Resultados Académicos Saber 11°
+        </footer>
+    </div>
+
+    <script>
+        function customRound(val) {
+            if (val === null || val === undefined || isNaN(val)) return 0;
+            const integerPart = Math.floor(val);
+            const decimalPart = val - integerPart;
+            if (decimalPart > 0.5) {
+                return integerPart + 1;
+            } else {
+                return integerPart;
+            }
+        }
+
+        const rawStudentsData = [
+            { id: 11, nombre: "BERROCAL ARRIETA LUIS MATEO", lc: 74, mat: 80, soc: 67, nat: 100, ing: 64, globalRaw: 395.000000 },
+            { id: 34, nombre: "APARICIO MELENDREZ ANGELA MARÍA", lc: 59, mat: 69, soc: 53, nat: 68, ing: 45, globalRaw: 304.615385 },
+            { id: 12, nombre: "RUIZ RODRIGUEZ VALENTINA", lc: 59, mat: 62, soc: 58, nat: 65, ing: 51, globalRaw: 301.153846 },
+            { id: 16, nombre: "MARIMON TUIRAN SARA ENA", lc: 51, mat: 66, soc: 55, nat: 64, ing: 46, globalRaw: 290.000000 },
+            { id: 14, nombre: "ARRIETA GONZALEZ LORENA", lc: 55, mat: 65, soc: 53, nat: 59, ing: 51, globalRaw: 287.307692 },
+            { id: 13, nombre: "MENDEZ SIERRA EIDY LUZ", lc: 52, mat: 65, soc: 37, nat: 67, ing: 45, globalRaw: 272.307692 },
+            { id: 8,  nombre: "JARAMILLO CAMAÑO JUAN PABLO", lc: 51, mat: 51, soc: 47, nat: 57, ing: 45, globalRaw: 255.000000 },
+            { id: 2,  nombre: "GASPAR SIERRA EMILY VALENTINA", lc: 55, mat: 44, soc: 44, nat: 50, ing: 40, globalRaw: 238.076923 },
+            { id: 15, nombre: "RUIZ ESTRADA JUAN DAVID", lc: 43, mat: 43, soc: 55, nat: 40, ing: 40, globalRaw: 224.230769 },
+            { id: 19, nombre: "ORTIZ MADERA CAMILO ANDRES", lc: 41, mat: 48, soc: 41, nat: 48, ing: 40, globalRaw: 220.769231 },
+            { id: 5,  nombre: "MORENO SANCHEZ EMANUEL", lc: 34, mat: 53, soc: 40, nat: 47, ing: 29, globalRaw: 211.923077 }
+        ];
+
+        const studentsData = rawStudentsData.map(st => {
+            const lcRounded = customRound(st.lc);
+            const matRounded = customRound(st.mat);
+            const socRounded = customRound(st.soc);
+            const natRounded = customRound(st.nat);
+            const ingRounded = customRound(st.ing);
+            const globalRounded = customRound(st.globalRaw);
+
+            let nivel = "";
+            let badgeClass = "";
+
+            if (globalRounded < 200) {
+                nivel = "Crítico";
+                badgeClass = "badge-critico";
+            } else if (globalRounded < 250) {
+                nivel = "Bajo";
+                badgeClass = "badge-bajo";
+            } else if (globalRounded < 300) {
+                nivel = "Medio";
+                badgeClass = "badge-medio";
+            } else if (globalRounded < 400) {
+                nivel = "Alto";
+                badgeClass = "badge-alto";
+            } else {
+                nivel = "Sobresaliente";
+                badgeClass = "badge-sobresaliente";
+            }
+
+            return {
+                ...st,
+                lcRounded,
+                matRounded,
+                socRounded,
+                natRounded,
+                ingRounded,
+                globalRounded,
+                nivel,
+                badgeClass
+            };
+        });
+
+        studentsData.sort((a, b) => b.globalRounded - a.globalRounded);
+
+        let barChart = null;
+        let pieChart = null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderDashboard();
+        });
+
+        function renderDashboard() {
+            renderTable();
+            calculateAndRenderKPIs();
+            renderCharts();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById("tableBody");
+            tbody.innerHTML = "";
+
+            studentsData.forEach((st, index) => {
+                const tr = document.createElement("tr");
+
+                let rankBadge = `<span class="rank-badge">${index + 1}</span>`;
+                if (index === 0) rankBadge = `<span class="rank-badge rank-1"><i class="fa-solid fa-crown"></i></span>`;
+                else if (index === 1) rankBadge = `<span class="rank-badge rank-2">2</span>`;
+                else if (index === 2) rankBadge = `<span class="rank-badge rank-3">3</span>`;
+
+                tr.innerHTML = `
+                    <td style="text-align: center;">${rankBadge}</td>
+                    <td class="student-name">${st.nombre}</td>
+                    <td style="text-align: center; font-weight: 600;">${st.lcRounded}</td>
+                    <td style="text-align: center; font-weight: 600;">${st.matRounded}</td>
+                    <td style="text-align: center; font-weight: 600;">${st.socRounded}</td>
+                    <td style="text-align: center; font-weight: 600;">${st.natRounded}</td>
+                    <td style="text-align: center; font-weight: 600;">${st.ingRounded}</td>
+                    <td style="text-align: center;" class="score-global">${st.globalRounded}</td>
+                    <td style="text-align: center;">
+                        <span class="badge-nivel ${st.badgeClass}">${st.nivel}</span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById("totalStudentsCount").innerText = studentsData.length;
+        }
+
+        function calculateAndRenderKPIs() {
+            const total = studentsData.length;
+
+            const sumGlobalRaw = rawStudentsData.reduce((acc, st) => acc + st.globalRaw, 0);
+            const avgGlobalRaw = sumGlobalRaw / total;
+            const avgGlobalRounded = customRound(avgGlobalRaw);
+
+            const variance = rawStudentsData.reduce((acc, st) => acc + Math.pow(st.globalRaw - avgGlobalRaw, 2), 0) / (total - 1);
+            const stdGlobalRaw = Math.sqrt(variance);
+            const stdGlobalRounded = customRound(stdGlobalRaw);
+
+            const avgAreasRaw = {
+                "Lectura Crítica": rawStudentsData.reduce((acc, st) => acc + st.lc, 0) / total,
+                "Matemáticas": rawStudentsData.reduce((acc, st) => acc + st.mat, 0) / total,
+                "Sociales": rawStudentsData.reduce((acc, st) => acc + st.soc, 0) / total,
+                "Ciencias Naturales": rawStudentsData.reduce((acc, st) => acc + st.nat, 0) / total,
+                "Inglés": rawStudentsData.reduce((acc, st) => acc + st.ing, 0) / total
+            };
+
+            let mejorAreaName = "";
+            let mejorAreaValRaw = -1;
+            let peorAreaName = "";
+            let peorAreaValRaw = 999;
+
+            for (const [area, val] of Object.entries(avgAreasRaw)) {
+                if (val > mejorAreaValRaw) {
+                    mejorAreaValRaw = val;
+                    mejorAreaName = area;
+                }
+                if (val < peorAreaValRaw) {
+                    peorAreaValRaw = val;
+                    peorAreaName = area;
+                }
+            }
+
+            document.getElementById("kpiPromedioGlobal").innerText = avgGlobalRounded;
+            document.getElementById("kpiDesviacion").innerText = stdGlobalRounded;
+            document.getElementById("kpiMejorArea").innerText = mejorAreaName;
+            document.getElementById("kpiMejorAreaVal").innerText = customRound(mejorAreaValRaw);
+            document.getElementById("kpiPeorArea").innerText = peorAreaName;
+            document.getElementById("kpiPeorAreaVal").innerText = customRound(peorAreaValRaw);
+        }
+
+        function renderCharts() {
+            const total = studentsData.length;
+
+            const avgLC = customRound(rawStudentsData.reduce((acc, st) => acc + st.lc, 0) / total);
+            const avgMAT = customRound(rawStudentsData.reduce((acc, st) => acc + st.mat, 0) / total);
+            const avgSOC = customRound(rawStudentsData.reduce((acc, st) => acc + st.soc, 0) / total);
+            const avgNAT = customRound(rawStudentsData.reduce((acc, st) => acc + st.nat, 0) / total);
+            const avgING = customRound(rawStudentsData.reduce((acc, st) => acc + st.ing, 0) / total);
+
+            // 1. BAR CHART EXACTO A LA IMAGEN DE REFERENCIA
+            const ctxBar = document.getElementById("barChartAreas").getContext("2d");
+            if (barChart) barChart.destroy();
+
+            barChart = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['Lectura Crítica', 'Matemáticas', 'Sociales', 'Ciencias Naturales', 'Inglés'],
+                    datasets: [{
+                        data: [avgLC, avgMAT, avgSOC, avgNAT, avgING],
+                        backgroundColor: [
+                            '#8b5cf6', // Morado suave
+                            '#0284c7', // Azul brillante
+                            '#f59e0b', // Naranja/Amarillo cálido
+                            '#10b981', // Verde esmeralda
+                            '#ec4899'  // Rosado vibrante
+                        ],
+                        borderRadius: 12,       // Esquinas ampliamente redondeadas
+                        borderSkipped: false,  // Redondea arriba y abajo por igual
+                        barPercentage: 0.85,    // Barras robustas y anchas
+                        categoryPercentage: 0.85
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `Promedio: ${context.raw} pts`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20,
+                                color: '#64748b',
+                                font: { family: 'Plus Jakarta Sans', weight: '600', size: 12 }
+                            },
+                            grid: {
+                                color: '#f1f5f9',
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#334155',
+                                font: { family: 'Plus Jakarta Sans', weight: '700', size: 12 }
+                            },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+
+            // 2. PIE CHART
+            const nivelCounts = {
+                "Crítico": 0,
+                "Bajo": 0,
+                "Medio": 0,
+                "Alto": 0,
+                "Sobresaliente": 0
+            };
+
+            studentsData.forEach(st => {
+                nivelCounts[st.nivel]++;
+            });
+
+            document.getElementById("countCritico").innerText = nivelCounts["Crítico"];
+            document.getElementById("countBajo").innerText = nivelCounts["Bajo"];
+            document.getElementById("countMedio").innerText = nivelCounts["Medio"];
+            document.getElementById("countAlto").innerText = nivelCounts["Alto"];
+            document.getElementById("countSobresaliente").innerText = nivelCounts["Sobresaliente"];
+
+            const ctxPie = document.getElementById("pieChartNiveles").getContext("2d");
+            if (pieChart) pieChart.destroy();
+
+            pieChart = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Crítico (<200)', 'Bajo (200-249)', 'Medio (250-299)', 'Alto (300-399)', 'Sobresaliente (>400)'],
+                    datasets: [{
+                        data: [
+                            nivelCounts["Crítico"],
+                            nivelCounts["Bajo"],
+                            nivelCounts["Medio"],
+                            nivelCounts["Alto"],
+                            nivelCounts["Sobresaliente"]
+                        ],
+                        backgroundColor: [
+                            '#ef4444',
+                            '#eab308',
+                            '#f97316',
+                            '#2563eb',
+                            '#10b981'
+                        ],
+                        borderWidth: 3,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: { family: 'Plus Jakarta Sans', weight: '600', size: 11 },
+                                padding: 12,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const count = context.raw;
+                                    const percentage = customRound((count / total) * 100);
+                                    return ` ${context.label}: ${count} est. (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '58%'
+                }
+            });
+        }
+
+        function filterData() {
+            renderDashboard();
+        }
+
+        function exportToExcel() {
+            const exportData = studentsData.map((st, idx) => ({
+                "Posición": idx + 1,
+                "Nombre y Apellidos": st.nombre,
+                "Lectura Crítica": st.lcRounded,
+                "Matemáticas": st.matRounded,
+                "Sociales y C. Ciudadanas": st.socRounded,
+                "Ciencias Naturales": st.natRounded,
+                "Inglés": st.ingRounded,
+                "Puntaje Global": st.globalRounded,
+                "Nivel de Desempeño": st.nivel
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Resultados Saber 11");
+
+            worksheet["!cols"] = [
+                { wch: 10 },
+                { wch: 38 },
+                { wch: 16 },
+                { wch: 14 },
+                { wch: 22 },
+                { wch: 18 },
+                { wch: 10 },
+                { wch: 16 },
+                { wch: 20 }
+            ];
+
+            XLSX.writeFile(workbook, "Resultados_Saber_11_IE_La_Esperanza.xlsx");
+        }
+    </script>
+</body>
+</html>
